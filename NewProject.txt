@@ -1,0 +1,62 @@
+1. Payload will be used for clients
+Payload :
+{
+	"username":"admin", // 
+	"password":"admin123",
+	"mobileno":"9898989",
+	"message":"test message",
+	"sender":"PINCLE"
+}
+
+Payload :
+{
+	"username":"admin", // 
+	"password":"admin123",
+	"payload":[
+		{
+		"mobileno":"88888888888",
+		"message":"test message",
+		"sender":"PINCLE"
+		},
+		"mobileno":"9999999999",
+		"message":"second message",
+		"sender":"PINCLE"
+		}
+	]
+	
+}
+
+{"status":200,"message":"success","responseid":[{"1232212","233243232}]}
+before processing log client request
+{"status":200,"message":"success","responseid":[{"1232212","233243232}]}
+{"status":504,"message":"Invalid mobile number"}
+
+Note: Create a log file of all client requests.
+
+2. Fetching from header param:
+header param :
+
+apikey : Yjjj3334-34334-sdfsdf-34343
+
+note : authorization will be happen either un pw or apikey
+
+if apikey exist in header we have to give priority to apikey else un or pw
+
+
+// Models
+/* Create a table for api_key having attributes member_id, apikey, created_at, status */
+table for api key
+memid, apikey, createdat , status
+
+
+/* Create a table for login data having attributes member_id, user_name, password, status, created_at, ip_login add validations for each field*/
+logintable
+memid, un, pw, status,createdat,iplogin
+validation 
+
+
+/* Create a final table having member_id, *response_id*, mobile, sender, message, request_date_time */
+final table 
+memid, respid, mobile, sender, message, reqdttm
+
+

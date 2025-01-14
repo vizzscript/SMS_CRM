@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f4f9;
+        }
+        .container {
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .container h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        input[type="file"] {
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #response {
+            margin-top: 15px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload JSON File</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" id="file" name="file" accept=".json" required />
+            <br />
+            <button type="submit">Upload</button>
+        </form>
+        <div id="response"></div>
+    </div>
+
+    <script>
+        document.getElementById("uploadForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            const fileInput = document.getElementById("file");
+            const responseDiv = document.getElementById("response");
+
+            if (!fileInput.files.length) {
+                responseDiv.textContent = "Please select a file to upload.";
+                responseDiv.style.color = "red";
+                return;
+            }
+
+            formData.append("file", fileInput.files[0]);
+
+            try {
+                const response = await fetch("/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                const message = await response.text();
+
+                if (response.ok) {
+                    responseDiv.textContent = message;
+                    responseDiv.style.color = "green";
+                } else {
+                    responseDiv.textContent = "Error: " + message;
+                    responseDiv.style.color = "red";
+                }
+            } catch (error) {
+                responseDiv.textContent = "An error occurred: " + error.message;
+                responseDiv.style.color = "red";
+            }
+        });
+    </script>
+</body>
+</html>
