@@ -1,0 +1,46 @@
+1. Create a model for data packet.
+2. Store at least 100000+ data in it.
+3. Process the data according to memId and send the data packet in multi threaded way to the Pinnacle endpoint.
+
+
+Rather than posting data on postman,
+I need to create a program to fetch records of multiple data payloads of multiple memId present in database and then
+directly process the data to pinnacle database based on memId tables will be create at runtime.
+===========================================================================================================================================================
+To-dos:
+1. 
+-> Create a table in clients end and from that table fetch the records(sender, mobileNo, message)
+
+=> INSERT INTO user_payload_model (message, mobile_no, sender) SELECT      CONCAT('Message ', FLOOR(RAND() * 1000)) AS message,     CONCAT('9', LPAD(FLOOR(RAND() * 1000000000), 9, '0')) AS mobile_no,     'PINCLE' AS sender FROM information_schema.tables LIMIT 300;
+
+-> Fetch the records from table to the application
+
+-> I don't need dto for processing, the data should be fetched from the table and should create format of payload in client application end and then process this data to organization end using webclient
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1. To add multiple headers at client and organization end.
+2. To check wether the payload is encrypted or not, to check if the apikey is present or not if present then perform encryption & decryption at clients end & org end, if apikey not present in headers validate using username & password present in body.
+3. Validations on username, password, payload data packets.
