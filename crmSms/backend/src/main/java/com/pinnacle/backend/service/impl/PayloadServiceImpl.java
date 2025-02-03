@@ -108,27 +108,34 @@ public class PayloadServiceImpl implements PayloadService {
 
                     // Important to convert payload from Object to JSON**
                     ObjectMapper objectMapper = new ObjectMapper();
-                    String json = objectMapper.writeValueAsString(payload);
+                    String jsonStringPayload = objectMapper.writeValueAsString(payload);
 
-                    // Encrypt payload
-                    String encryptedPayload = EncryptionUtil.encrypt(json.toString());
-                    log.info("Payload encrypted successfully");
-                    log.info("Encrypted Payload: {}", encryptedPayload);
-                    log.info("API Key: {}", apiKey);
                     // Encrypt API Key
+                    log.info("API Key: {}", apiKey);
                     String encryptedAPIKey = EncryptionUtil.encryptedAPIKey(apiKey);
                     log.info("API Key encrypted successfully");
                     log.info("Encrypted API Key: {}", encryptedAPIKey);
 
                     // Set headers
                     HttpHeaders headers = new HttpHeaders();
-                    headers.set("responseType", "json");
-                    headers.set("isEncrypted", "1");
+                    headers.set("isencrypted", "0");
+                    headers.set("responsetype", "json");
                     headers.set("apiKey", encryptedAPIKey);
-                    log.info("Headers set: responseType=json, isEncrypted=1");
+                    log.info("Headers set: responsetype=json, isencrypted=1");
                     log.info("Headers: {}", headers);
 
-                    return sendPayloadToOrg(encryptedPayload, headers);
+                    // Encrypt payload based on headers
+                    String isEncrypted = headers.getFirst("isencrypted");
+                    if ("1".equals(isEncrypted)) {
+                        String encryptedPayload = EncryptionUtil.encrypt(jsonStringPayload);
+                        log.info("Payload encrypted successfully");
+                        log.info("Encrypted Payload: {}", encryptedPayload);
+                        return sendPayloadToOrg(encryptedPayload, headers);
+                    } else {
+                        log.info("Sending Unencrypted JSON payload");
+                        return sendPayloadToOrg(jsonStringPayload, headers);
+                    }
+
                 } catch (Exception e) {
                     log.error("Error encrypting data", e);
                     return Mono.error(new RuntimeException("Error encrypting data", e));
@@ -173,18 +180,18 @@ public class PayloadServiceImpl implements PayloadService {
     }
 
     // Send encrypted payload to organization API
-    private Mono<String> sendPayloadToOrg(String encryptedPayload, HttpHeaders headers) {
+    private Mono<String> sendPayloadToOrg(String Payload, HttpHeaders headers) {
         log.info("Sending encrypted payload to organization API...");
 
         // Log payload and headers before sending
-        log.info("Sending Payload: {}", encryptedPayload);
+        log.info("Sending Payload: {}", Payload);
         log.info("Headers: {}", headers);
 
         return webClient
                 .post()
                 .uri("http://localhost:8080/client/payload/accept")
                 .headers(httpHeaders -> httpHeaders.addAll(headers))
-                .bodyValue(encryptedPayload)
+                .bodyValue(Payload)
                 .retrieve()
                 .bodyToMono(String.class)
                 .doOnTerminate(() -> log.info("Payload request finished"))
