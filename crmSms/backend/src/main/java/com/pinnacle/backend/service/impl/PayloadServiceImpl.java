@@ -3,6 +3,8 @@ package com.pinnacle.backend.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -91,7 +93,7 @@ public class PayloadServiceImpl implements PayloadService {
     }
 
     @Override
-    public Mono<String> sendPayloadData() {
+    public Mono<ResponseEntity<String>> sendPayloadData() {
         log.info("Starting to send payload data...");
 
         try {
@@ -180,20 +182,22 @@ public class PayloadServiceImpl implements PayloadService {
     }
 
     // Send encrypted payload to organization API
-    private Mono<String> sendPayloadToOrg(String Payload, HttpHeaders headers) {
+    private Mono<ResponseEntity<String>> sendPayloadToOrg(String payload, HttpHeaders headers) {
         log.info("Sending encrypted payload to organization API...");
 
         // Log payload and headers before sending
-        log.info("Sending Payload: {}", Payload);
+        log.info("Sending Payload: {}", payload);
         log.info("Headers: {}", headers);
 
         return webClient
                 .post()
                 .uri("http://localhost:8080/client/payload/accept")
                 .headers(httpHeaders -> httpHeaders.addAll(headers))
-                .bodyValue(Payload)
-                .retrieve()
-                .bodyToMono(String.class)
+                .bodyValue(payload)
+                .exchangeToMono(response ->
+                // Map the response body (whether error or success) to a ResponseEntity
+                response.bodyToMono(String.class)
+                        .map(body -> ResponseEntity.status(response.statusCode()).body(body)))
                 .doOnTerminate(() -> log.info("Payload request finished"))
                 .onErrorResume(e -> {
                     if (e instanceof WebClientResponseException) {
@@ -203,7 +207,8 @@ public class PayloadServiceImpl implements PayloadService {
                     } else {
                         log.error("Unexpected error occurred: ", e);
                     }
-                    return Mono.just("Failed to send data: " + e.getMessage());
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body("Failed to send data: " + e.getMessage()));
                 });
     }
 
